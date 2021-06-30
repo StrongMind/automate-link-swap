@@ -1,2 +1,7 @@
 cypress/videos
+cypress/screenshots
 node_modules
+
+cypress/plugins/cookie.txt
+cypress/plugins/data.tsv
+.vscode

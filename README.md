@@ -1,13 +1,14 @@
 # automate-link-swap
 
 # To Configure
-1. Paste in data from spreadsheet into `cypress/integration/swap.links.js` line 5.
-2. Paste in cookie from a valid logged in session of cds.flipswitch.com into `cypress/integration/swap.links.js` line 22.
+1. Paste in columns B through I from spreadsheet into a file called `cypress/plugins/data.tsv`.
+2. Paste in cookie from a valid logged in session of cds.flipswitch.com into `cypress/plugins/cookie.txt`.
 
-# To Run
+# To Install
 `npm i`
 
-`cypress open`
+# To Run
+`npx cypress open`
 
 Select the directory of the project.
 

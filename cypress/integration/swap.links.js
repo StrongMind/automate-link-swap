@@ -1,43 +1,56 @@
-
+const fs = require("fs");
 context("CDS", () => {
     it("swaps links", () => {
 
-        const rows = `{PASTE ROW FROM SPREADSHEET (COLUMNS B-I) HERE}`;
+        const rows = Cypress.env('inputData');
 
         const parsed = parse(rows);
-        console.log(parsed);
-        for (const input of parsed) {
-            openLesson(input);
-        }
-       
+
+        loginToCDS().then(() => {
+            openEachLesson(parsed, 0);
+
+        });
+
     });
-    
+
 });
 
-function openLesson(inputs) {
-    cy.request({
+function loginToCDS() {
+    return cy.request({
         method: "GET",
         url: "https://cds.flipswitch.com/",
         headers: {
-            Cookie: `{PASTE COOKIE HERE}`
+            Cookie: Cypress.env('cookie')
+        }
+    });
+}
+
+function openEachLesson(inputList, i) {
+    openLesson(inputList[i]).then(() => {
+        if (i < inputList.length) {
+            openEachLesson(inputList, i + 1);
         }
     })
-    .then(()=> {
+}
 
-        cy.visit(inputs.lessonUrl);
-        
-        cy.wait(5000);
+function openLesson(inputs) {
 
-        
-        
-        addActivity(inputs);
+    cy.visit(inputs.lessonUrl);
 
-        //sortActivity(inputs);
+    cy.intercept({ url: "/api/CourseStructure/GetLessonDetail/**" }).as("doneGettingLesson");
+    cy.wait("@doneGettingLesson", { requestTimeout: 20000 });
 
-        //deleteActivity(inputs, true);
+    addActivity(inputs);
 
-        
-    });
+    cy.intercept({ url: "/api/CourseStructure/GetActivityDetail/**" }).as("doneGettingActivity");
+
+    return cy.wait("@doneGettingActivity", { requestTimeout: 20000 });
+
+    //sortActivity(inputs);
+
+    //deleteActivity(inputs, true);
+
+
 }
 
 function sortActivity(inputs) {
@@ -50,12 +63,10 @@ function sortActivity(inputs) {
 }
 function deleteActivity(inputs, last) {
     let lineItem = null;
-    if (last) 
-    {
+    if (last) {
         lineItem = cy.get(".row-link").contains(inputs.title).last().parentsUntil(".row-lineitem").parent();
     }
-    else 
-    {
+    else {
         lineItem = cy.get(".row-link").contains(inputs.title).parentsUntil(".row-lineitem").parent();
     }
     lineItem.within(() => {
@@ -89,23 +100,31 @@ function addActivity(inputs) {
 
 
 function parse(tsvRows) {
-    const output = [];
-    const rows = tsvRows.split("\n");
-    for (const row of rows) {
-        const cols = row.split("\t");
-        const obj = {
-            lessonUrl: cols[0].trim(),
-            title: cols[2].trim(),
-            gradeCategory: cols[3].trim(),
-            attempts: cols[4].trim(),
-            gradingType: cols[5].trim(),
-            launchUrl: cols[6].trim()
+    try {
+        const output = [];
+        const rows = tsvRows.split("\n");
+        for (const row of rows) {
+            const cols = row.split("\t");
+            if (cols.length < 6) {
+                continue;
+            }
+            const obj = {
+                lessonUrl: cols[0].trim(),
+                title: cols[1].trim(),
+                gradeCategory: cols[2].trim(),
+                attempts: cols[3].trim(),
+                gradingType: cols[4].trim(),
+                launchUrl: cols[5].trim()
+            }
+            if (obj.gradeCategory == "Warm-Up") {
+                obj.gradeCategory = "Warm-Up/Independent Practice";
+            }
+            output.push(obj);
         }
-        if (obj.gradeCategory == "Warm-Up")
-        {
-            obj.gradeCategory = "Warm-Up/Independent Practice";
-        }
-        output.push(obj);
+        return output;
     }
-    return output;
+    catch (e) {
+        console.log(e);
+        console.log(tsvRows);
+    }
 }
