@@ -26,25 +26,25 @@ function loginToCDS() {
 }
 
 function openEachLesson(inputList, i) {
-    openLesson(inputList[i]).then(() => {
+    openLesson(inputList[i], i).then(() => {
         if (i < inputList.length) {
             openEachLesson(inputList, i + 1);
         }
     })
 }
 
-function openLesson(inputs) {
+function openLesson(inputs, i) {
 
     cy.visit(inputs.lessonUrl);
 
-    cy.intercept({ url: "/api/CourseStructure/GetLessonDetail/**" }).as("doneGettingLesson");
-    cy.wait("@doneGettingLesson", { requestTimeout: 20000 });
+    cy.intercept({ url: "/api/CourseStructure/GetLessonDetail/**" }).as(`doneGettingLesson${i}`);
+    cy.wait(`@doneGettingLesson${i}`, { requestTimeout: 20000 });
 
     addActivity(inputs);
 
-    cy.intercept({ url: "/api/CourseStructure/GetActivityDetail/**" }).as("doneGettingActivity");
+    cy.intercept({ url: "/api/CourseStructure/GetActivityDetail/**" }).as(`doneGettingActivity${i}`);
 
-    return cy.wait("@doneGettingActivity", { requestTimeout: 20000 });
+    return cy.wait(`@doneGettingActivity${i}`, { requestTimeout: 20000 });
 
     //sortActivity(inputs);
 
@@ -116,8 +116,8 @@ function parse(tsvRows) {
                 gradingType: cols[4].trim(),
                 launchUrl: cols[5].trim()
             }
-            if (obj.gradeCategory == "Warm-Up") {
-                obj.gradeCategory = "Warm-Up/Independent Practice";
+            if (obj.gradeCategory == "Warm-Up" || obj.gradeCategory == "Independent Practice") {
+                obj.gradeCategory = "Warm-Ups and Independent Practice";
             }
             output.push(obj);
         }
