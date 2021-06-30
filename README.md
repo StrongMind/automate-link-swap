@@ -6,4 +6,5 @@
 
 # To Run
 `npm i`
+
 `cypress run`
