@@ -7,4 +7,9 @@
 # To Run
 `npm i`
 
-`cypress run`
+`cypress open`
+
+Select the directory of the project.
+
+Click on swap.links.js
+
