@@ -2,7 +2,7 @@
 context("CDS", () => {
     it("swaps links", () => {
 
-        const rows = `{PASTE ROWS FROM SPREADSHEET (COLUMNS B-I) HERE}`;
+        const rows = `{PASTE ROW FROM SPREADSHEET (COLUMNS B-I) HERE}`;
 
         const parsed = parse(rows);
         console.log(parsed);
